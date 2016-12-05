@@ -188,65 +188,26 @@ RUN ls -la \
 RUN cpanm Bio::DB::HTS::Tabix
 
 RUN mkdir -p /ensembl
+RUN mkdir -p /ensembl/logs
+RUN mkdir -p /ensembl/tmp
+RUN mkdir -p /ensembl/scripts
+RUN mkdir -p /ensembl/conf
 
-RUN adduser --disabled-password --gecos '' eguser \
-    && adduser eguser sudo \
-    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-# set mysql root password without prompting
-# set password with --build-args
-#ARG DB_SESSION_PASSWORD
-#ARG DB_ROOT_PASSWORD
-#ARG ENSEMBL_VERSION
-#RUN { echo mysql-server mysql-server/root_password password $DB_ROOT_PASSWORD; } | debconf-set-selections \
-#    && { echo mysql-server mysql-server/root_password_again password $DB_ROOT_PASSWORD; } | debconf-set-selections \
-#    && apt-get update && apt-get install -y mysql-server
-#RUN echo $DB_ROOT_PASSWORD | dpkg-reconfigure mysql-server
-#RUN apt-get update \
-#    && apt-get install -y debconf-utils \
-#    && echo mysql-server-5.5 mysql-server/root_password password xyzzy | debconf-set-selections \
-#    && echo mysql-server-5.5 mysql-server/root_password_again password xyzzy | debconf-set-selections \
-#    && apt-get install -y mysql-server -o pkg::Options::="--force-confdef" -o pkg::Options::="--force-confold" --fix-missing \
-#    && apt-get install -y net-tools --fix-missing \
-#    && apt-get install -y mysql-client mysql-common \
-#    && rm -rf /var/lib/apt/lists/*
-
-# git clone easy mirror/import
-WORKDIR /ensembl
-RUN git clone --recursive https://github.com/lepbase/easy-import ei
-WORKDIR /ensembl/ei
-RUN git checkout develop
+RUN adduser --disabled-password --gecos '' eguser
 
 EXPOSE 8080
-
-RUN mkdir /ensembl/docker-scripts
-WORKDIR /ensembl/docker-scripts
-RUN printf "#!/bin/bash\n\ncd /ensembl/ei/em &> /ensembl/logs/testfile\n./update-ensembl-code.sh /ensembl/conf/setup.ini &> /ensembl/logs/update.log\necho 3 > testfile\n./reload-ensembl-site.sh /ensembl/conf/setup.ini &> /ensembl/logs/reload.log\ncd -\ntail -f /dev/null\n" > startup.sh \
-    && chmod 755 startup.sh
 
 RUN chown -R eguser:eguser /ensembl
 
 # create symbolic link to perl binary in location referenced by ensembl scripts
 RUN ln -s /usr/bin/perl /usr/local/bin/perl
 
-#WORKDIR /ensembl/ei/em
-#RUN service mysql stop \
-#    && sed -i "s:127.0.0.1:localhost:" /etc/mysql/my.cnf \
-#    && service mysql start
-#RUN cat /etc/mysql/my.cnf
-#RUN chmod -R 755 /var/run/mysqld
-#RUN mysqladmin -uroot -p$DB_ROOT_PASSWORD status
-#RUN ./setup-databases.sh /tmp/db.ini
+COPY *.sh /ensembl/scripts/
+COPY default.setup.ini /ensembl/conf/setup.ini
+COPY placeholder-* /ensembl/conf/
 
-# set up a local accounts/session database
-#RUN printf "[DATABASE]\nDB_USER = anonymous\nDB_SESSION_USER = ensrw\nDB_SESSION_PASS = $DB_SESSION_PASSWORD\nDB_ROOT_USER = root\nDB_ROOT_PASSWORD = $DB_ROOT_PASSWORD\nDB_PORT = 3306\nDB_HOST = localhost\n" > /tmp/db.ini
-#RUN printf "[WEBSITE]\nENSEMBL_WEBSITE_HOST = localhost\n" >> /tmp/db.ini
-#RUN printf "[DATA_SOURCE]\nENSEMBL_DB_URL = ftp://ftp.ensembl.org/pub/release-$ENSEMBL_VERSION/mysql/\nENSEMBL_DB_REPLACE = 1\nENSEMBL_DBS = [ ensembl_accounts ]\n" >> /tmp/db.ini
-#RUN cat /tmp/db.ini
-
-RUN apt-get install -y nano
-
+WORKDIR /ensembl
 USER eguser
-#WORKDIR /ensembl/docker-scripts
-CMD ["/ensembl/docker-scripts/startup.sh"]
+RUN /ensembl/scripts/update.sh /ensembl/conf/setup.ini
+CMD ["/ensembl/scripts/startup.sh"]
 
