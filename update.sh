@@ -30,6 +30,7 @@ function db_connection_test(){
   if ! [ -z $5 ]; then
     DB_CONNECT="$DB_CONNECT -p $5"
   fi
+echo $DB_CONNECT
   $DB_CONNECT -e "" &> /dev/null;
   DB_CONNECT_RESULT=$?
 }
@@ -123,6 +124,9 @@ cp $SERVER_ROOT/public-plugins/mirror/conf/ini-files/DEFAULTS.ini-dist $SERVER_R
 
 # set species core database connection parameters
 DB_HOST=$(awk -F "=" '/DB_HOST/ {print $2}' $INI | tr -d ' ')
+if [ $DB_HOST = "localhost" ]; then
+  DB_HOST=$MYSQL_SERVER_PORT_3306_TCP_ADDR
+fi
 DB_PORT=$(awk -F "=" '/DB_PORT/ {print $2}' $INI | tr -d ' ')
 DB_USER=$(awk -F "=" '/DB_USER/ {print $2}' $INI | tr -d ' ')
 DB_PASS=$(awk -F "=" '/DB_PASS/ {print $2}' $INI | tr -d ' ')
@@ -198,10 +202,16 @@ cp /ensembl/conf/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/
 
 # set DB_FALLBACK variables
 DB_FALLBACK_HOST=$(awk -F "=" '/DB_FALLBACK_HOST/ {print $2}' $INI | tr -d ' ')
+if [ $DB_FALLBACK_HOST = "localhost" ]; then
+  DB_FALLBACK_HOST=$MYSQL_SERVER_PORT_3306_TCP_ADDR
+fi
 DB_FALLBACK_PORT=$(awk -F "=" '/DB_FALLBACK_PORT/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK_USER=$(awk -F "=" '/DB_FALLBACK_USER/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK_PASS=$(awk -F "=" '/DB_FALLBACK_PASS/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK2_HOST=$(awk -F "=" '/DB_FALLBACK2_HOST/ {print $2}' $INI | tr -d ' ')
+if [ $DB_FALLBACK2_HOST = "localhost" ]; then
+  DB_FALLBACK2_HOST=$MYSQL_SERVER_PORT_3306_TCP_ADDR
+fi
 DB_FALLBACK2_PORT=$(awk -F "=" '/DB_FALLBACK2_PORT/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK2_USER=$(awk -F "=" '/DB_FALLBACK2_USER/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK2_PASS=$(awk -F "=" '/DB_FALLBACK2_PASS/ {print $2}' $INI | tr -d ' ')
@@ -299,16 +309,22 @@ printf "\n[general]\n$DEFAULT_FAVOURITES" >> $SERVER_ROOT/public-plugins/mirror/
 printf "[databases]\n" > $SERVER_ROOT/public-plugins/mirror/conf/ini-files/MULTI.ini
 
 DB_SESSION_HOST=$(awk -F "=" '/DB_SESSION_HOST/ {print $2}' $INI | tr -d ' ')
+if [ $DB_SESSION_HOST = "localhost" ]; then
+  echo $DB_SESSION_HOST
+
+  DB_SESSION_HOST=$MYSQL_SERVER_PORT_3306_TCP_ADDR
+
+fi
 DB_SESSION_PORT=$(awk -F "=" '/DB_SESSION_PORT/ {print $2}' $INI | tr -d ' ')
 DB_SESSION_USER=$(awk -F "=" '/DB_SESSION_USER/ {print $2}' $INI | tr -d ' ')
 DB_SESSION_PASS=$(awk -F "=" '/DB_SESSION_PASS/ {print $2}' $INI | tr -d ' ')
 
-db_connection_test DATABASE_SESSION $DB_SESSION_HOST $DB_SESSION_PORT $DB_SESSION_USER $DB_SESSION_PASS
+db_connection_test ensembl_session $DB_SESSION_HOST $DB_SESSION_PORT $DB_SESSION_USER $DB_SESSION_PASS
 if [ $DB_CONNECT_RESULT -eq 0 ]; then
   printf "  DATABASE_SESSION = ensembl_session\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/MULTI.ini
 fi
 
-db_connection_test DATABASE_ACCOUNTS $DB_SESSION_HOST $DB_SESSION_PORT $DB_SESSION_USER $DB_SESSION_PASS
+db_connection_test ensembl_accounts $DB_SESSION_HOST $DB_SESSION_PORT $DB_SESSION_USER $DB_SESSION_PASS
 if [ $DB_CONNECT_RESULT -eq 0 ]; then
   printf "  DATABASE_ACCOUNTS = ensembl_accounts\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/MULTI.ini
 fi

@@ -1,14 +1,8 @@
 #!/bin/bash
 
-# check script was called correctly
-INI=$1
-if [ -z $INI ]; then
-  echo "Usage: './reload-ensemblcode.sh <filename.ini>'\n";
-  exit 1
-fi
-
 # set directory names
 SERVER_ROOT=/ensembl
+HTTP_PORT=8080
 
 # stop server
 $SERVER_ROOT/ensembl-webcode/ctrl_scripts/stop_server
@@ -23,7 +17,6 @@ fi
 $SERVER_ROOT/ensembl-webcode/ctrl_scripts/start_server
 
 # test whether site is working, restart if not
-HTTP_PORT=8080
 COUNT=0
 URL=http://localhost:$HTTP_PORT/i/placeholder.png
 while [ $COUNT -lt 5 ]; do
