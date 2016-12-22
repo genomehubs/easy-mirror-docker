@@ -19,6 +19,7 @@ DB_USER=$(awk -F "=" '/DB_USER/ {print $2}' $INI | tr -d ' ')
 DB_PASS=$(awk -F "=" '/DB_PASS/ {print $2}' $INI | tr -d ' ')
 DB_SESSION_USER=$(awk -F "=" '/DB_SESSION_USER/ {print $2}' $INI | tr -d ' ')
 DB_SESSION_PASS=$(awk -F "=" '/DB_SESSION_PASS/ {print $2}' $INI | tr -d ' ')
+DB_SESSION_NAME=$(awk -F "=" '/DB_SESSION_NAME/ {print $2}' $INI | tr -d ' ')
 DB_IMPORT_USER=$(awk -F "=" '/DB_IMPORT_USER/ {print $2}' $INI | tr -d ' ')
 DB_IMPORT_PASS=$(awk -F "=" '/DB_IMPORT_PASS/ {print $2}' $INI | tr -d ' ')
 
@@ -26,8 +27,6 @@ ROOT_CONNECT="mysql -u$DB_ROOT_USER -p$DB_ROOT_PASSWORD -h$DB_HOST -P$DB_PORT"
 IMPORT_CONNECT="mysqlimport -u$DB_ROOT_USER -p$DB_ROOT_PASSWORD -h$DB_HOST -P$DB_PORT"
 
 # test whether we can connect and throw error if not
-echo $ROOT_CONNECT;
-echo $IMPORT_CONNECT;
 $ROOT_CONNECT -e "" &> /dev/null;
 if ! [ $? -eq 0 ]; then
     printf "ERROR: Unable to connect to mysql server as root.\n       Check connection settings in $INI\n"
@@ -43,14 +42,13 @@ fi
 
 # create database users and grant privileges
 if [ -z $DB_SESSION_USER  ]; then
-  printf "ERROR: No DB_SESSION_USER specified.\n       Unable to create ensembl_session/ensembl_accounts database\n"
+  printf "ERROR: No DB_SESSION_USER specified.\n       Unable to create $DB_SESSION_NAME database\n"
   exit 1;
 fi
 if ! [ -z $DB_IMPORT_USER ]; then
   IMPORT_USER_CREATE="GRANT ALL ON *.* TO '$DB_IMPORT_USER'@'$ENSEMBL_WEBSITE_HOST' IDENTIFIED BY '$DB_IMPORT_PASS';"
 fi
-SESSION_USER_CREATE="GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON ensembl_accounts.* TO '$DB_SESSION_USER'@'$ENSEMBL_WEBSITE_HOST' IDENTIFIED BY '$DB_SESSION_PASS';"
-SESSION_USER_CREATE="$SESSION_USER_CREATE GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON ensembl_session.* TO '$DB_SESSION_USER'@'$ENSEMBL_WEBSITE_HOST';"
+SESSION_USER_CREATE="GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES ON $DB_SESSION_NAME.* TO '$DB_SESSION_USER'@'$ENSEMBL_WEBSITE_HOST' IDENTIFIED BY '$DB_SESSION_PASS';"
 if ! [ -z $DB_USER  ]; then
   DB_USER_CREATE="GRANT SELECT ON *.* TO '$DB_USER'@'$ENSEMBL_WEBSITE_HOST'"
   if ! [ -z $DB_PASS ]; then
@@ -64,19 +62,27 @@ function load_db(){
   #load_db <remote_url> <db_name> [overwrite_flag]
 
   URL_EXISTS=1
-  echo Working on $1/$2
+  REMOTE=$1
+  OLDIFS=$IFS
+  IFS="|" read DB NAME <<< "$2"
+  IFS=$OLDIFS
+  if [ -z $NAME ]; then
+    NAME=$DB
+  fi
+  FLAG=$3
+  echo Working on $REMOTE/$DB as $NAME
 
-  if [ -z $3 ]; then
+  if [ -z $FLAG ]; then
     # don't overwrite database if it already exists
-    $ROOT_CONNECT -e "USE $2" &> /dev/null
+    $ROOT_CONNECT -e "USE $NAME" &> /dev/null
     if [ $? -eq 0 ]; then
-      echo "  $2 exists, not overwriting"
+      echo "  $NAME exists, not overwriting"
       return
     fi
   fi
 
   # test whether database dump exists at DB_URL
-  wget -q --spider $1/$2/$2.sql.gz
+  wget -q --spider $REMOTE/$DB/$DB.sql.gz
   if ! [ $? -eq 0 ]; then
     URL_EXISTS=
     echo "  no dump available"
@@ -84,29 +90,30 @@ function load_db(){
   fi
 
   # create local database
-  $ROOT_CONNECT -e "DROP DATABASE IF EXISTS $2; CREATE DATABASE $2;"
+  $ROOT_CONNECT -e "DROP DATABASE IF EXISTS $NAME; CREATE DATABASE $NAME;"
 
   # fetch and unzip sql/data
-  PROTOCOL="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-  URL="$(echo ${1/$PROTOCOL/})"
-  wget -q -r $1/$2
+  PROTOCOL="$(echo $REMOTE | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+  URL="$(echo ${REMOTE/$PROTOCOL/})"
+  wget -q -r $REMOTE/$DB
   mv $URL/* ./
-  gunzip $2/*sql.gz
+  gunzip $DB/*sql.gz
 
   # load sql into database
-  $ROOT_CONNECT $2 < $2/$2.sql
+  $ROOT_CONNECT $NAME < $DB/$DB.sql
 
   # load data into database
-  for ZIPPED_FILE in $2/*.txt.gz
-  do
-    gunzip $ZIPPED_FILE
-    FILE=${ZIPPED_FILE%.*}
-    $IMPORT_CONNECT --fields_escaped_by=\\\\ $2 -L $FILE
-    rm $FILE
-  done
-
+#  if [ -s "$DB/*.txt.gz" ]; then
+    for ZIPPED_FILE in $DB/*.txt.gz
+    do
+      gunzip $ZIPPED_FILE
+      FILE=${ZIPPED_FILE%.*}
+      $IMPORT_CONNECT --fields_escaped_by=\\\\ $NAME -L $FILE
+      rm $FILE
+    done
+#  fi
   # remove remaining downloaded data
-  rm -r $2
+  rm -r $DB
 }
 
 # move to /tmp while downloading files

@@ -202,12 +202,13 @@ RUN chown -R eguser:eguser /ensembl
 # create symbolic link to perl binary in location referenced by ensembl scripts
 RUN ln -s /usr/bin/perl /usr/local/bin/perl
 
-COPY *.sh /ensembl/scripts/
+USER eguser
+COPY update.sh /ensembl/scripts/
 COPY default.setup.ini /ensembl/conf/setup.ini
+RUN /ensembl/scripts/update.sh /ensembl/conf/setup.ini
 COPY placeholder-* /ensembl/conf/
+COPY *.sh /ensembl/scripts/
 
 WORKDIR /ensembl
-USER eguser
-RUN /ensembl/scripts/update.sh /ensembl/conf/setup.ini
 CMD ["/ensembl/scripts/startup.sh"]
 
