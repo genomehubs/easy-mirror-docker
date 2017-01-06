@@ -43,8 +43,6 @@ RUN apt-get update && apt-get install -y \
         libhts1 \
         libhts-dev
 
-RUN cpanm --force WWW::Curl::Multi
-
 WORKDIR /tmp
 RUN wget -q http://apache.mirror.anlx.net/httpd/CHANGES_2.2 \
     && export APACHEVERSION=`grep "Changes with" CHANGES_2.2 | head -n 1 | cut -d" " -f 4` \
@@ -80,9 +78,11 @@ RUN git clone https://github.com/samtools/htslib
 WORKDIR /tmp/htslib
 RUN make && make install
 
+RUN apt-get install -y libio-socket-ssl-perl
+
 # install most required perl modules using cpanminus
-#RUN cpanm Encode::Escape::ASCII 
 RUN cpanm Scalar::Util \
+        WWW::Curl::Multi \
         Archive::Zip \
         CGI::Session \
         Class::Accessor \
@@ -135,11 +135,7 @@ RUN cpanm Scalar::Util \
         Lingua::EN::Inflect \
         YAML \
         Math::Round \
-        Rose::DB::Object::Manager \
-        Tree::DAG_Node \
-        IO::Unread \
-        Text::LevenshteinXS \
-        Math::SigFigs
+        Rose::DB::Object::Manager
 
 # install kent utils (see https://hub.docker.com/r/genomicpariscentre/biotoolbox/~/dockerfile/ for inspiration)
 WORKDIR /usr/local 

@@ -103,7 +103,7 @@ function load_db(){
   $ROOT_CONNECT $NAME < $DB/$DB.sql
 
   # load data into database
-#  if [ -s "$DB/*.txt.gz" ]; then
+  if [ -s "$DB/*.txt.gz" ]; then
     for ZIPPED_FILE in $DB/*.txt.gz
     do
       gunzip $ZIPPED_FILE
@@ -111,7 +111,7 @@ function load_db(){
       $IMPORT_CONNECT --fields_escaped_by=\\\\ $NAME -L $FILE
       rm $FILE
     done
-#  fi
+  fi
   # remove remaining downloaded data
   rm -r $DB
 }

@@ -30,6 +30,7 @@ function db_connection_test(){
   if ! [ -z $5 ]; then
     DB_CONNECT="$DB_CONNECT -p $5"
   fi
+echo $DB_CONNECT
   $DB_CONNECT -e "" &> /dev/null;
   DB_CONNECT_RESULT=$?
 }
