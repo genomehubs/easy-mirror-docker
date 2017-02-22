@@ -101,9 +101,9 @@ function load_db(){
 
   # load sql into database
   $ROOT_CONNECT $NAME < $DB/$DB.sql
-
   # load data into database
-  if [ -s "$DB/*.txt.gz" ]; then
+
+  if ls $DB/*.txt.gz 1> /dev/null 2>&1; then
     for ZIPPED_FILE in $DB/*.txt.gz
     do
       gunzip $ZIPPED_FILE
