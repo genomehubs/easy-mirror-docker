@@ -202,7 +202,6 @@ USER eguser
 COPY update.sh /ensembl/scripts/
 COPY default.setup.ini /ensembl/conf/setup.ini
 RUN /ensembl/scripts/update.sh /ensembl/conf/setup.ini
-COPY placeholder-* /ensembl/conf/
 COPY *.sh /ensembl/scripts/
 
 WORKDIR /ensembl

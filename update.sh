@@ -278,6 +278,7 @@ do
   printf "DATABASE_CORE = $DB\n#OTHER_DATABASES\n\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
   # !add database connection parameters to Genus_species.ini
   printf "\n[DATABASE_CORE]\nHOST = $TEST_HOST\nPORT = $TEST_PORT\nUSER = $TEST_USER\nPASS = $TEST_PASS\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
+
   # attempt to add additional database types
   for DB_TYPE in $SPECIES_DB_AUTO_EXPAND
   do
