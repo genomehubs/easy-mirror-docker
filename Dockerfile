@@ -202,7 +202,13 @@ USER eguser
 COPY update.sh /ensembl/scripts/
 COPY default.setup.ini /ensembl/conf/setup.ini
 RUN /ensembl/scripts/update.sh /ensembl/conf/setup.ini
-COPY *.sh /ensembl/scripts/
+ENV PERL5LIB $PERL5LIB:/ensembl/bioperl-live/
+ENV PERL5LIB $PERL5LIB:/ensembl/ensembl/modules
+ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-compara/modules
+ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-funcgen/modules
+ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-io/modules
+ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-variation/modules
+COPY * /ensembl/scripts/
 
 WORKDIR /ensembl
 CMD ["/ensembl/scripts/startup.sh"]

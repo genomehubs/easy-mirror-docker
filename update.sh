@@ -198,6 +198,9 @@ echo "  \$SiteDefs::ENSEMBL_PORT = $HTTP_PORT;" >> $SERVER_ROOT/public-plugins/m
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64
+if ! [ -e /ensembl/conf/placeholder-64.png ]; then
+  cp /ensembl/scripts/placeholder* /ensembl/conf
+fi
 cp /ensembl/conf/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/placeholder.png
 
 # set DB_FALLBACK variables
