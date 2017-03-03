@@ -19,15 +19,15 @@ $SERVER_ROOT/ensembl-webcode/ctrl_scripts/start_server
 # test whether site is working, restart if not
 COUNT=0
 URL=http://localhost:$HTTP_PORT/i/placeholder.png
-while [ $COUNT -lt 5 ]; do
+while [ $COUNT -lt 25 ]; do
   if curl --output /dev/null --silent --head --fail "$URL"; then
     break
   else
-    if [ $COUNT -lt 4 ]; then
+    if [ $COUNT -lt 24 ]; then
       echo "WARNING: unable to resolve URL $URL, restarting server."
       $SERVER_ROOT/ensembl-webcode/ctrl_scripts/restart_server
     else
-      echo "ERROR: failed to start server in 5 attempts."
+      echo "ERROR: failed to start server in 24 attempts."
     fi
   fi
   let COUNT=COUNT+1
