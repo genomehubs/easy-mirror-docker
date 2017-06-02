@@ -84,6 +84,9 @@ git_update $SERVER_ROOT/ensembl-io $ENSEMBL_URL/ensembl-io.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/public-plugins $ENSEMBL_URL/public-plugins.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-production $ENSEMBL_URL/ensembl-production.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-pipeline $ENSEMBL_URL/ensembl-pipeline.git master
+git_update $SERVER_ROOT/ensembl-external $ENSEMBL_URL/ensembl-external.git $ENSEMBL_BRANCH
+git_update $SERVER_ROOT/ensembl-rest $ENSEMBL_URL/ensembl-rest.git $ENSEMBL_BRANCH
+git_update $SERVER_ROOT/ensembl-tools $ENSEMBL_URL/ensembl-tools.git $ENSEMBL_BRANCH
 
 EG_URL=$(awk -F "=" '/EG_URL/ {print $2}' $INI | tr -d ' ')
 if ! [ -z $EG_URL ]; then
