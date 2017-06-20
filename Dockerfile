@@ -183,6 +183,8 @@ RUN ls -la \
 # install Bio::DB::HTS::Tabix using cpanminus
 RUN cpanm Bio::DB::HTS::Tabix
 
+RUN cpanm Text::CSV
+
 RUN mkdir -p /ensembl
 RUN mkdir -p /ensembl/logs
 RUN mkdir -p /ensembl/tmp
@@ -208,7 +210,15 @@ ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-compara/modules
 ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-funcgen/modules
 ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-io/modules
 ENV PERL5LIB $PERL5LIB:/ensembl/ensembl-variation/modules
-COPY * /ensembl/scripts/
+
+USER root
+
+RUN apt-get update && apt-get install -y nano imagemagick
+
+USER eguser
+
+COPY *.sh /ensembl/scripts/
+COPY *.png /ensembl/scripts/
 
 WORKDIR /ensembl
 CMD ["/ensembl/scripts/startup.sh"]

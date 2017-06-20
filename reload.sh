@@ -8,9 +8,8 @@ HTTP_PORT=8080
 $SERVER_ROOT/ensembl-webcode/ctrl_scripts/stop_server
 
 # remove packed config files
-if [ -e $SERVER_ROOT/ensembl-webcode/conf/config.packed ]; then
-  rm $SERVER_ROOT/ensembl-webcode/conf/config.packed
-  rm -r $SERVER_ROOT/ensembl-webcode/conf/packed
+if [ -d $SERVER_ROOT/conf/packed ]; then
+  rm -r $SERVER_ROOT/conf/*packed*
 fi
 
 # start server
