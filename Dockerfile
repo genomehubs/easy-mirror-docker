@@ -151,7 +151,7 @@ ENV MACHTYPE x86_64
 ENV KENT_SRC /usr/local/kent/src
 
 WORKDIR /usr/local/kent/src/inc
-RUN  mkdir /usr/local/bin/script; mkdir /usr/local/bin/x86_64
+RUN mkdir /usr/local/bin/script; mkdir /usr/local/bin/x86_64
 RUN sed -i "s/CFLAGS\=/CFLAGS\=\-fPIC/" common.mk \
  && sed -i "s:BINDIR = \${HOME}/bin/\${MACHTYPE}:BINDIR=/usr/local/bin/\${MACHTYPE}:" common.mk \
  && sed -i "s:SCRIPTS=\${HOME}/bin/scripts:SCRIPTS=/usr/local/bin/scripts:" common.mk
@@ -215,9 +215,46 @@ USER root
 
 RUN apt-get update && apt-get install -y nano imagemagick
 
+# install Kentutils version 335
+
+#WORKDIR /usr/local
+
+#RUN rm -r /usr/local/kent
+#RUN wget http://hgdownload.cse.ucsc.edu/admin/jksrc.archive/jksrc.v335.zip
+#RUN unzip jksrc.v335.zip
+
+#WORKDIR /usr/local/kent/src/
+#ENV MACHTYPE x86_64
+#ENV KENT_SRC /usr/local/kent/src
+
+#WORKDIR /usr/local/kent/src/inc
+#RUN rm -r /usr/local/bin/script; rm -r /usr/local/bin/x86_64
+#RUN sed -i "s/CFLAGS\=/CFLAGS\=\-fPIC/" common.mk \
+# && sed -i "s:BINDIR = \${HOME}/bin/\${MACHTYPE}:BINDIR=/usr/local/bin/\${MACHTYPE}:" common.mk \
+# && sed -i "s:SCRIPTS=\${HOME}/bin/scripts:SCRIPTS=/usr/local/bin/scripts:" common.mk
+
+#WORKDIR /usr/local/kent/src/lib
+#RUN make
+
+#WORKDIR /usr/local/kent/src/jkOwnLib
+#RUN make
+
+#RUN apt-get install -y lighttpd
+#RUN sed -i 's/"mod_redirect",/"mod_redirect",\n\t"mod_cgi",/' /etc/lighttpd/lighttpd.conf
+#RUN sed -i 's/=\s*80/= 8765/' /etc/lighttpd/lighttpd.conf
+#RUN sed -i 's/"\/var\/run\/lighttpd.pid"/"\/ensembl\/logs\/lighttpd.pid"/' /etc/lighttpd/lighttpd.conf
+#RUN echo 'cgi.assign = ( ".pl" => "/usr/bin/perl" )' >> /etc/lighttpd/lighttpd.conf
+#COPY *.pl /var/www/html/
+#RUN chmod 755 /var/www/html/*.pl
+#WORKDIR /var/run/lighttpd
+#RUN chgrp www-data /var/run/lighttpd
+#RUN usermod -a -G www-data eguser
+
 USER eguser
 
+COPY httpd.conf /ensembl/scripts/
 COPY *.sh /ensembl/scripts/
+COPY *.pl /ensembl/scripts/
 COPY *.png /ensembl/scripts/
 
 WORKDIR /ensembl

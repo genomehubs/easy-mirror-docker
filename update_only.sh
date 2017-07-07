@@ -232,10 +232,16 @@ DB_FALLBACK2_PASS=$(awk -F "=" '/DB_FALLBACK2_PASS/ {print $2}' $INI | tr -d ' '
 # use SPECIES_DBS to populate Primary/Secondary species
 SPECIES_DBS=$(perl -lne '$s.=$_;END{if ($s=~m/SPECIES_DBS\s*=\s*\[\s*(.+?)\s*\]/){print $1}}' $INI)
 SPECIES_DB_AUTO_EXPAND=$(awk -F "=" '/SPECIES_DB_AUTO_EXPAND/ {print $2}' $INI | tr -d '[' | tr -d ']')
-PRIMARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 1 | awk -F'_core_' '{print $1}'`
-PRIMARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${PRIMARY_SP:0:1})${PRIMARY_SP:1}"
-SECONDARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 2 | awk -F'_core_' '{print $1}'`
-SECONDARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${SECONDARY_SP:0:1})${SECONDARY_SP:1}"
+PRIMARY_SP=$(awk -F "=" '/PRIMARY_SP/ {print $2}' $INI | tr -d ' ')
+if [ -z $SECONDARY_SP ]; then
+  PRIMARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 1 | awk -F'_core_' '{print $1}'`
+  PRIMARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${PRIMARY_SP:0:1})${PRIMARY_SP:1}"
+fi
+SECONDARY_SP=$(awk -F "=" '/SECONDARY_SP/ {print $2}' $INI | tr -d ' ')
+if [ -z $SECONDARY_SP ]; then
+  SECONDARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 2 | awk -F'_core_' '{print $1}'`
+  SECONDARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${SECONDARY_SP:0:1})${SECONDARY_SP:1}"
+fi
 if [ -z $SECONDARY_SP ]; then
   SECONDARY_SP=$PRIMARY_SP
 fi
@@ -260,7 +266,7 @@ do
   #echo "  \$SiteDefs::__species_aliases{ '$SP_UC_FIRST' } = [qw($SP_LOWER)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 
   # add to ALL_SPECIES and DEFAULT_FAVOURITES
-  ALL_SPECIES="$ALL_SPECIES\n$SP_LOWER"
+  ALL_SPECIES="$ALL_SPECIES\n${SP_LOWER%%_collection}"
   DEFAULT_FAVOURITES="$DEFAULT_FAVOURITES $SP_UC_FIRST"
 
   # add/copy species images and about pages
@@ -419,3 +425,10 @@ do
   ((INDEX++))
 done
 
+cp $SERVER_ROOT/scripts/httpd.conf $SERVER_ROOT/ensembl-webcode/conf/httpd.conf
+mkdir -p $SERVER_ROOT/ensembl-webcode/htdocs/search
+for file in $SERVER_ROOT/scripts/*.pl; do
+  newfile=${file%%.pl}
+  newfile=${newfile##*/}
+  rsync -av $file $SERVER_ROOT/ensembl-webcode/htdocs/search/$newfile
+done
