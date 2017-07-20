@@ -109,7 +109,7 @@ while ( my $row = $sth->fetchrow_hashref ){
 			my %dbs;
 			my %log;
 			for (my $i = 0; $i < @{$strings{'gene.xref.dbprimary_acc'}}; $i++){
-				$dbs{$strings{'gene.xref.dbprimary_acc'}[$i]->{string}} = $strings{'gene.xref.dbprimary_acc'}[$i]->{detail};
+				$dbs{$strings{'gene.xref.dbprimary_acc'}[$i]->{string}} = $strings{'gene.xref.dbprimary_acc'}[$i]->{detail} || $strings{'gene.xref.dbprimary_acc'}[$i]->{string};
 				$xrefs{$strings{'gene.xref.dbprimary_acc'}[$i]->{string}}{'dbprimary_acc'} = $strings{'gene.xref.dbprimary_acc'}[$i]->{string};
 				$xrefs{$strings{'gene.xref.dbprimary_acc'}[$i]->{string}}{'display_label'} = $strings{'gene.xref.dbprimary_acc'}[$i]->{string};
 			}
@@ -152,7 +152,7 @@ while ( my $row = $sth->fetchrow_hashref ){
 				my %tsc_dbs;
 				my %tsc_log;
 				for (my $i = 0; $i < @{$strings{'transcript.xref.dbprimary_acc'}}; $i++){
-					$tsc_dbs{$strings{'transcript.xref.dbprimary_acc'}[$i]->{string}} = $strings{'transcript.xref.dbprimary_acc'}[$i]->{detail};
+					$tsc_dbs{$strings{'transcript.xref.dbprimary_acc'}[$i]->{string}} = $strings{'transcript.xref.dbprimary_acc'}[$i]->{detail} || $strings{'transcript.xref.dbprimary_acc'}[$i]->{string};
 					$tsc_xrefs{$strings{'transcript.xref.dbprimary_acc'}[$i]->{string}}{'dbprimary_acc'} = $strings{'transcript.xref.dbprimary_acc'}[$i]->{string};
 					$tsc_xrefs{$strings{'transcript.xref.dbprimary_acc'}[$i]->{string}}{'display_label'} = $strings{'transcript.xref.dbprimary_acc'}[$i]->{string};
 				}
@@ -190,7 +190,7 @@ while ( my $row = $sth->fetchrow_hashref ){
 				my %tsl_dbs;
 				my %tsl_log;
 				for (my $i = 0; $i < @{$strings{'translation.xref.dbprimary_acc'}}; $i++){
-					$tsl_dbs{$strings{'translation.xref.dbprimary_acc'}[$i]->{string}} = $strings{'translation.xref.dbprimary_acc'}[$i]->{detail};
+					$tsl_dbs{$strings{'translation.xref.dbprimary_acc'}[$i]->{string}} = $strings{'translation.xref.dbprimary_acc'}[$i]->{detail} || $strings{'translation.xref.dbprimary_acc'}[$i]->{string};
 					$tsl_xrefs{$strings{'translation.xref.dbprimary_acc'}[$i]->{string}}{'dbprimary_acc'} = $strings{'translation.xref.dbprimary_acc'}[$i]->{string};
 					$tsl_xrefs{$strings{'translation.xref.dbprimary_acc'}[$i]->{string}}{'display_label'} = $strings{'translation.xref.dbprimary_acc'}[$i]->{string};
 				}
