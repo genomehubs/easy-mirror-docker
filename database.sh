@@ -25,7 +25,7 @@ DB_IMPORT_PASS=$(awk -F "=" '/DB_IMPORT_PASS/ {print $2}' $INI | tr -d ' ')
 DB_IMPORT_HOST=$(awk -F "=" '/DB_IMPORT_HOST/ {print $2}' $INI | tr -d ' ')
 
 ROOT_CONNECT="mysql -u$DB_ROOT_USER -p$DB_ROOT_PASSWORD -h$DB_HOST -P$DB_PORT"
-IMPORT_CONNECT="mysqlimport -u$DB_ROOT_USER -p$DB_ROOT_PASSWORD -h$DB_IMPORT_HOST -P$DB_PORT"
+IMPORT_CONNECT="mysqlimport -u$DB_ROOT_USER -p$DB_ROOT_PASSWORD -h$DB_HOST -P$DB_PORT"
 
 # test whether we can connect and throw error if not
 $ROOT_CONNECT -e "" &> /dev/null;
