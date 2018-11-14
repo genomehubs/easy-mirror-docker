@@ -82,9 +82,9 @@ function load_db(){
     fi
   fi
 
-  # test whether database dump exists at DB_URL
-  wget -q --spider $REMOTE/$DB/$DB.sql.gz
-  if ! [ $? -eq 0 ]; then
+  if curl --output /dev/null --silent --head --fail "$REMOTE/$DB/$DB.sql.gz"; then
+    echo " URL exists"
+  else
     URL_EXISTS=
     echo "  no dump available"
     return

@@ -75,19 +75,7 @@ fi
 # call git update for each Ensembl repository:
 ENSEMBL_URL=$(awk -F "=" '/ENSEMBL_URL/ {print $2}' $INI | tr -d ' ')
 ENSEMBL_BRANCH=$(awk -F "=" '/ENSEMBL_BRANCH/ {print $2}' $INI | tr -d ' ')
-#git_update $SERVER_ROOT/ensembl $ENSEMBL_URL/ensembl.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-compara $ENSEMBL_URL/ensembl-compara.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-funcgen $ENSEMBL_URL/ensembl-funcgen.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-orm $ENSEMBL_URL/ensembl-orm.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-variation $ENSEMBL_URL/ensembl-variation.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-webcode $ENSEMBL_URL/ensembl-webcode.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-io $ENSEMBL_URL/ensembl-io.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/public-plugins $ENSEMBL_URL/public-plugins.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-production $ENSEMBL_URL/ensembl-production.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-pipeline $ENSEMBL_URL/ensembl-pipeline.git master
-#git_update $SERVER_ROOT/ensembl-external $ENSEMBL_URL/ensembl-external.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-rest $ENSEMBL_URL/ensembl-rest.git $ENSEMBL_BRANCH
-#git_update $SERVER_ROOT/ensembl-tools $ENSEMBL_URL/ensembl-tools.git $ENSEMBL_BRANCH
 
 EG_URL=$(awk -F "=" '/EG_URL/ {print $2}' $INI | tr -d ' ')
 if ! [ -z $EG_URL ]; then
@@ -99,11 +87,6 @@ if ! [ -z $EG_URL ]; then
   git_update $SERVER_ROOT/eg-web-search $EG_URL/eg-web-search.git $EG_BRANCH
   git_update $SERVER_ROOT/eg-web-metazoa $EG_URL/$EG_DIVISION.git $EG_BRANCH
 fi
-
-# call git update for bioperl-live
-#BIOPERL_URL=$(awk -F "=" '/BIOPERL_URL/ {print $2}' $INI | tr -d ' ')
-#BIOPERL_BRANCH=$(awk -F "=" '/BIOPERL_BRANCH/ {print $2}' $INI | tr -d ' ')
-#git_update $SERVER_ROOT/bioperl-live $BIOPERL_URL/bioperl-live.git $BIOPERL_BRANCH
 
 # call git update for any plugin repositories
 PLUGIN_URLS=()
@@ -148,11 +131,6 @@ perl -p -i -e "s/^.*GRAPHIC_TTF_PATH.*=.*/GRAPHIC_TTF_PATH = \/usr\/share\/fonts
 
 # ! hack:
 # comment out debugging code that is not compatible with Ubuntu/Perl
-perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/ensembl-webcode/modules/EnsEMBL/Web/Apache/Handlers.pm;
-perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/ensembl-webcode/modules/EnsEMBL/Web/CDBI.pm;
-perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/ensembl/modules/Bio/EnsEMBL/Utils/Exception.pm
-perl -0777 -p -i -e 's/while \( my \@call = caller.+?\s}/\# Removed caller /sg' $SERVER_ROOT/ensembl/modules/Bio/EnsEMBL/Utils/Exception.pm
-perl -0777 -p -i -e 's/while \(my \@T = caller.+?\s}/\# Removed caller /sg' $SERVER_ROOT/ensembl-webcode/modules/EnsEMBL/Web/SpeciesDefs.pm
 if [ -s $SERVER_ROOT/eg-web-common/modules/EnsEMBL/Web/Apache/Handlers.pm ]; then
   perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/eg-web-common/modules/EnsEMBL/Web/Apache/Handlers.pm;
 fi
@@ -206,9 +184,9 @@ mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64
 mkdir -p /ensembl/img
 if ! [ -e /conf/placeholder-64.png ]; then
-  cp /ensembl/scripts/placeholder* /ensembl/img
+  cp /ensembl/scripts/placeholder* /ensembl/img/
 else
-  cp /conf/placeholder* /ensembl/img
+  cp /conf/placeholder* /ensembl/img/
 fi
 cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/placeholder.png
 
@@ -300,6 +278,9 @@ do
   fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png ]; then
     cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
+  fi
+  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png ]; then
+    cp $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
   fi
 
   # create a Genus_species.ini file in mirror/conf/ini-files
@@ -426,9 +407,3 @@ do
 done
 
 cp $SERVER_ROOT/scripts/httpd.conf $SERVER_ROOT/ensembl-webcode/conf/httpd.conf
-mkdir -p $SERVER_ROOT/ensembl-webcode/htdocs/search
-for file in $SERVER_ROOT/scripts/*.pl; do
-  newfile=${file%%.pl}
-  newfile=${newfile##*/}
-  rsync -av $file $SERVER_ROOT/ensembl-webcode/htdocs/search/$newfile
-done

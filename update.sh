@@ -84,7 +84,6 @@ git_update $SERVER_ROOT/ensembl-io $ENSEMBL_URL/ensembl-io.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/public-plugins $ENSEMBL_URL/public-plugins.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-production $ENSEMBL_URL/ensembl-production.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-pipeline $ENSEMBL_URL/ensembl-pipeline.git master
-git_update $SERVER_ROOT/ensembl-external $ENSEMBL_URL/ensembl-external.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-rest $ENSEMBL_URL/ensembl-rest.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-tools $ENSEMBL_URL/ensembl-tools.git $ENSEMBL_BRANCH
 
@@ -155,6 +154,8 @@ perl -0777 -p -i -e 's/while \(my \@T = caller.+?\s}/\# Removed caller /sg' $SER
 if [ -s $SERVER_ROOT/eg-web-common/modules/EnsEMBL/Web/Apache/Handlers.pm ]; then
   perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/eg-web-common/modules/EnsEMBL/Web/Apache/Handlers.pm;
 fi
+# set a default value for TAXON_ORDER to ensure valid JSON
+sed -i 's/TAXON_ORDER/TAXON_ORDER||{}/' modules/EnsEMBL/Web/Document/HTML/GenomeList.pm | grep TAXON_ORDER
 
 # add mirror plugin to the top of Plugins.pm
 printf "\$SiteDefs::ENSEMBL_PLUGINS = [\n  'EnsEMBL::Mirror' => \$SiteDefs::ENSEMBL_SERVERROOT.'/public-plugins/mirror'" > $SERVER_ROOT/ensembl-webcode/conf/Plugins.pm
@@ -201,11 +202,11 @@ echo "  \$SiteDefs::ENSEMBL_PORT = $HTTP_PORT;" >> $SERVER_ROOT/public-plugins/m
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64
-mkdir /ensembl/img
+mkdir -p /ensembl/img
 if ! [ -e /ensembl/conf/placeholder-64.png ]; then
-  cp /ensembl/scripts/placeholder* /ensembl/img
+  cp /ensembl/scripts/placeholder* /ensembl/img/
 else
-  cp /ensembl/conf/placeholder* /ensembl/img
+  cp /ensembl/conf/placeholder* /ensembl/img/
 fi
 cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/placeholder.png
 
@@ -280,6 +281,9 @@ do
   fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png ]; then
     cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
+  fi
+  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png ]; then
+    cp $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
   fi
 
   # create a Genus_species.ini file in mirror/conf/ini-files
