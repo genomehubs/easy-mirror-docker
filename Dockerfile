@@ -5,7 +5,7 @@ MAINTAINER  Richard Challis/Lepbase contact@lepbase.org
 ENV TERM xterm
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y lsb-release apt-utils
+RUN apt-get update && apt-get install -y lsb-release
 
 RUN sed -i "s/$(lsb_release -sc) main/$(lsb_release -sc) main contrib non-free/" /etc/apt/sources.list
 
@@ -44,9 +44,8 @@ RUN apt-get update && apt-get install -y \
         libhts-dev
 
 WORKDIR /tmp
-RUN wget -q http://apache.mirror.anlx.net/httpd/CHANGES_2.2 \
-    && export APACHEVERSION=`grep "Changes with" CHANGES_2.2 | head -n 1 | cut -d" " -f 4` \
-    && wget -q http://apache.mirror.anlx.net/httpd/httpd-$APACHEVERSION.tar.gz \
+RUN export APACHEVERSION=2.2.34 \
+    && wget -q http://archive.apache.org/dist/httpd/httpd-$APACHEVERSION.tar.gz \
     && tar xzf httpd-$APACHEVERSION.tar.gz \
     && cd httpd-$APACHEVERSION \
     && ./configure --with-included-apr --enable-deflate --enable-headers --enable-expires --enable-rewrite --enable-proxy \
@@ -76,9 +75,10 @@ RUN perl Makefile.PL \
 WORKDIR /tmp
 RUN git clone https://github.com/samtools/htslib
 WORKDIR /tmp/htslib
+RUN apt-get -y install libbz2-dev
 RUN make && make install
 
-RUN apt-get install -y libio-socket-ssl-perl
+RUN apt-get install -y bzip2 libio-socket-ssl-perl
 
 # install most required perl modules using cpanminus
 RUN cpanm Scalar::Util \
@@ -157,6 +157,7 @@ RUN sed -i "s/CFLAGS\=/CFLAGS\=\-fPIC/" common.mk \
  && sed -i "s:SCRIPTS=\${HOME}/bin/scripts:SCRIPTS=/usr/local/bin/scripts:" common.mk
 
 WORKDIR /usr/local/kent/src/lib
+RUN apt-get install -y uuid-dev
 RUN make
 
 WORKDIR /usr/local/kent/src/jkOwnLib

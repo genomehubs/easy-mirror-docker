@@ -59,6 +59,38 @@ if ! [ -z $DB_USER  ]; then
 fi
 $ROOT_CONNECT -e "$IMPORT_USER_CREATE$SESSION_USER_CREATE$DB_USER_CREATE"
 
+function patch_db(){
+  #patch_db <old_name> <new_name>
+  DB=$1
+  NAME=$2
+  if [ "$DB" != "$NAME" ]; then
+    echo "  patching database schema"
+    FROM=$(echo $DB | awk -F '_' '{print $NF}')
+    TO=$(echo $NAME | awk -F '_' '{print $NF}')
+    TYPE=$(echo $NAME | awk -F '_' '{print $ (NF-1)}')
+    if [[ $DB =~ _([a-z]+)_[0-9]+_([0-9]+)_[0-9]+ ]]; then
+      FROM=${BASH_REMATCH[2]}
+      TO=$(echo $NAME | awk -F '_' '{print $ (NF-1)}')
+      TYPE=${BASH_REMATCH[1]}
+    elif [[ $DB =~ _([a-z]+)_[0-9]+_([0-9]+) ]]; then
+      FROM=${BASH_REMATCH[2]}
+      TYPE=${BASH_REMATCH[1]}
+    fi
+    CMD="/ensembl/ensembl/misc-scripts/schema_patcher.pl \
+         --host $DB_HOST \
+         --port $DB_PORT \
+         --user $DB_ROOT_USER \
+         --pass $DB_ROOT_PASSWORD \
+         --type $TYPE \
+         --from $FROM \
+         --release $TO \
+         --verbose \
+         --interactive 0 \
+         --database $NAME"
+    eval $CMD
+  fi
+}
+
 function load_db(){
   #load_db <remote_url> <db_name> [overwrite_flag]
 
@@ -77,6 +109,7 @@ function load_db(){
     # don't overwrite database if it already exists
     $ROOT_CONNECT -e "USE $NAME" &> /dev/null
     if [ $? -eq 0 ]; then
+      patch_db $DB $NAME
       echo "  $NAME exists, not overwriting"
       return
     fi
