@@ -115,6 +115,33 @@ function load_db(){
   fi
   # remove remaining downloaded data
   rm -r $DB
+
+  # patch database to new release if appropriate
+  if [ "$DB" != "$NAME" ]; then
+    FROM=$(echo $DB | awk -F '_' '{print $NF}')
+    TO=$(echo $NAME | awk -F '_' '{print $NF}')
+    TYPE=$(echo $NAME | awk -F '_' '{print $ (NF-1)}')
+    if [[ $DB =~ _([a-z]+)_[0-9]+_([0-9]+)_[0-9]+ ]]; then
+      FROM=${BASH_REMATCH[2]}
+      TO=$(echo $NAME | awk -F '_' '{print $ (NF-1)}')
+      TYPE=${BASH_REMATCH[1]}
+    elif [[ $DB =~ _([a-z]+)_[0-9]+_([0-9]+) ]]; then
+      FROM=${BASH_REMATCH[2]}
+      TYPE=${BASH_REMATCH[1]}
+    fi
+    CMD="/ensembl/ensembl/misc-scripts/schema_patcher.pl \
+         --host $DB_HOST \
+         --port $DB_PORT \
+         --user $DB_ROOT_USER \
+         --pass $DB_ROOT_PASSWORD \
+         --type $TYPE \
+         --from $FROM \
+         --release $TO \
+         --verbose \
+         --interactive 0 \
+         --database $NAME"
+    eval $CMD
+  fi
 }
 
 # move to /tmp while downloading files
