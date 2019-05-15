@@ -65,6 +65,7 @@ function species_db_fallback(){
 # set directory names
 CWD=$(pwd)
 SERVER_ROOT=/ensembl
+mkdir -p $SERVER_ROOT/logs/$HOSTNAME-ensembl
 
 if [ -d $SERVER_ROOT ]; then
   # stop server in case already running
@@ -74,18 +75,7 @@ fi
 # call git update for each Ensembl repository:
 ENSEMBL_URL=$(awk -F "=" '/ENSEMBL_URL/ {print $2}' $INI | tr -d ' ')
 ENSEMBL_BRANCH=$(awk -F "=" '/ENSEMBL_BRANCH/ {print $2}' $INI | tr -d ' ')
-git_update $SERVER_ROOT/ensembl $ENSEMBL_URL/ensembl.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-compara $ENSEMBL_URL/ensembl-compara.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-funcgen $ENSEMBL_URL/ensembl-funcgen.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-orm $ENSEMBL_URL/ensembl-orm.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-variation $ENSEMBL_URL/ensembl-variation.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-webcode $ENSEMBL_URL/ensembl-webcode.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-io $ENSEMBL_URL/ensembl-io.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/public-plugins $ENSEMBL_URL/public-plugins.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-production $ENSEMBL_URL/ensembl-production.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-pipeline $ENSEMBL_URL/ensembl-pipeline.git master
-git_update $SERVER_ROOT/ensembl-rest $ENSEMBL_URL/ensembl-rest.git $ENSEMBL_BRANCH
-git_update $SERVER_ROOT/ensembl-tools $ENSEMBL_URL/ensembl-tools.git $ENSEMBL_BRANCH
 
 EG_URL=$(awk -F "=" '/EG_URL/ {print $2}' $INI | tr -d ' ')
 if ! [ -z $EG_URL ]; then
@@ -97,11 +87,6 @@ if ! [ -z $EG_URL ]; then
   git_update $SERVER_ROOT/eg-web-search $EG_URL/eg-web-search.git $EG_BRANCH
   git_update $SERVER_ROOT/eg-web-metazoa $EG_URL/$EG_DIVISION.git $EG_BRANCH
 fi
-
-# call git update for bioperl-live
-BIOPERL_URL=$(awk -F "=" '/BIOPERL_URL/ {print $2}' $INI | tr -d ' ')
-BIOPERL_BRANCH=$(awk -F "=" '/BIOPERL_BRANCH/ {print $2}' $INI | tr -d ' ')
-git_update $SERVER_ROOT/bioperl-live $BIOPERL_URL/bioperl-live.git $BIOPERL_BRANCH
 
 # call git update for any plugin repositories
 PLUGIN_URLS=()
@@ -146,16 +131,9 @@ perl -p -i -e "s/^.*GRAPHIC_TTF_PATH.*=.*/GRAPHIC_TTF_PATH = \/usr\/share\/fonts
 
 # ! hack:
 # comment out debugging code that is not compatible with Ubuntu/Perl
-perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/ensembl-webcode/modules/EnsEMBL/Web/Apache/Handlers.pm;
-perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/ensembl-webcode/modules/EnsEMBL/Web/CDBI.pm;
-perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/ensembl/modules/Bio/EnsEMBL/Utils/Exception.pm
-perl -0777 -p -i -e 's/while \( my \@call = caller.+?\s}/\# Removed caller /sg' $SERVER_ROOT/ensembl/modules/Bio/EnsEMBL/Utils/Exception.pm
-perl -0777 -p -i -e 's/while \(my \@T = caller.+?\s}/\# Removed caller /sg' $SERVER_ROOT/ensembl-webcode/modules/EnsEMBL/Web/SpeciesDefs.pm
 if [ -s $SERVER_ROOT/eg-web-common/modules/EnsEMBL/Web/Apache/Handlers.pm ]; then
   perl -p -i -e 's/^(\s*.*CACHE_TAGS.*)/#$1/' $SERVER_ROOT/eg-web-common/modules/EnsEMBL/Web/Apache/Handlers.pm;
 fi
-# set a default value for TAXON_ORDER to ensure valid JSON
-sed -i 's/TAXON_ORDER/TAXON_ORDER||{}/' modules/EnsEMBL/Web/Document/HTML/GenomeList.pm | grep TAXON_ORDER
 
 # add mirror plugin to the top of Plugins.pm
 printf "\$SiteDefs::ENSEMBL_PLUGINS = [\n  'EnsEMBL::Mirror' => \$SiteDefs::ENSEMBL_SERVERROOT.'/public-plugins/mirror'" > $SERVER_ROOT/ensembl-webcode/conf/Plugins.pm
@@ -190,36 +168,38 @@ done
 printf "\n];\n\n1;\n" >> $SERVER_ROOT/ensembl-webcode/conf/Plugins.pm
 
 # begin writing SiteDefs.pm
-printf "package EnsEMBL::Mirror::SiteDefs;\nuse strict;\n\nsub update_conf {" > $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
+printf "package EnsEMBL::Mirror::SiteDefs;\nuse strict;\n\nsub update_conf {\n" > $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 
 # set webserver parameters
 HTTP_PORT=8080
 echo "  \$SiteDefs::APACHE_DIR = '/usr/local/apache2';" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 echo "  \$SiteDefs::APACHE_BIN = '/usr/local/apache2/bin/httpd';" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
+echo "  \$SiteDefs::GRAPHIC_TTF_PATH = '/usr/share/fonts/truetype/msttcorefonts/';" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 echo "  \$SiteDefs::ENSEMBL_PORT = $HTTP_PORT;" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 
 # create directories for species/placeholder images
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16
+mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48
 mkdir -p $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64
 mkdir -p /ensembl/img
-if ! [ -e /ensembl/conf/placeholder-64.png ]; then
+if ! [ -e /conf/placeholder-64.png ]; then
   cp /ensembl/scripts/placeholder* /ensembl/img/
 else
-  cp /ensembl/conf/placeholder* /ensembl/img/
+  cp /conf/placeholder* /ensembl/img/
 fi
 cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/placeholder.png
 
 # set DB_FALLBACK variables
 DB_FALLBACK_HOST=$(awk -F "=" '/DB_FALLBACK_HOST/ {print $2}' $INI | tr -d ' ')
-if [ $DB_FALLBACK_HOST = "localhost" ]; then
+if [[ "$DB_FALLBACK_HOST" = "localhost" ]]; then
   DB_FALLBACK_HOST=$MYSQL_SERVER_PORT_3306_TCP_ADDR
 fi
 DB_FALLBACK_PORT=$(awk -F "=" '/DB_FALLBACK_PORT/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK_USER=$(awk -F "=" '/DB_FALLBACK_USER/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK_PASS=$(awk -F "=" '/DB_FALLBACK_PASS/ {print $2}' $INI | tr -d ' ')
 DB_FALLBACK2_HOST=$(awk -F "=" '/DB_FALLBACK2_HOST/ {print $2}' $INI | tr -d ' ')
-if [ $DB_FALLBACK2_HOST = "localhost" ]; then
+if [[ "$DB_FALLBACK2_HOST" = "localhost" ]]; then
   DB_FALLBACK2_HOST=$MYSQL_SERVER_PORT_3306_TCP_ADDR
 fi
 DB_FALLBACK2_PORT=$(awk -F "=" '/DB_FALLBACK2_PORT/ {print $2}' $INI | tr -d ' ')
@@ -230,10 +210,16 @@ DB_FALLBACK2_PASS=$(awk -F "=" '/DB_FALLBACK2_PASS/ {print $2}' $INI | tr -d ' '
 # use SPECIES_DBS to populate Primary/Secondary species
 SPECIES_DBS=$(perl -lne '$s.=$_;END{if ($s=~m/SPECIES_DBS\s*=\s*\[\s*(.+?)\s*\]/){print $1}}' $INI)
 SPECIES_DB_AUTO_EXPAND=$(awk -F "=" '/SPECIES_DB_AUTO_EXPAND/ {print $2}' $INI | tr -d '[' | tr -d ']')
-PRIMARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 1 | awk -F'_core_' '{print $1}'`
-PRIMARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${PRIMARY_SP:0:1})${PRIMARY_SP:1}"
-SECONDARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 2 | awk -F'_core_' '{print $1}'`
-SECONDARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${SECONDARY_SP:0:1})${SECONDARY_SP:1}"
+PRIMARY_SP=$(awk -F "=" '/PRIMARY_SP/ {print $2}' $INI | tr -d ' ')
+if [ -z $SECONDARY_SP ]; then
+  PRIMARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 1 | awk -F'_core_' '{print $1}'`
+  PRIMARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${PRIMARY_SP:0:1})${PRIMARY_SP:1}"
+fi
+SECONDARY_SP=$(awk -F "=" '/SECONDARY_SP/ {print $2}' $INI | tr -d ' ')
+if [ -z $SECONDARY_SP ]; then
+  SECONDARY_SP=`echo $SPECIES_DBS | cut -d' ' -f 2 | awk -F'_core_' '{print $1}'`
+  SECONDARY_SP="$(tr '[:lower:]' '[:upper:]' <<< ${SECONDARY_SP:0:1})${SECONDARY_SP:1}"
+fi
 if [ -z $SECONDARY_SP ]; then
   SECONDARY_SP=$PRIMARY_SP
 fi
@@ -241,6 +227,7 @@ fi
 echo "  \$SiteDefs::ENSEMBL_PRIMARY_SPECIES    = '$PRIMARY_SP'; # Default species" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 echo "  \$SiteDefs::ENSEMBL_SECONDARY_SPECIES  = '$SECONDARY_SP'; # Secondary species" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 DEFAULT_FAVOURITES=""
+ALL_SPECIES=""
 # loop through all SPECIES_DBS to test DB connections and generate config files
 for DB in $SPECIES_DBS
 do
@@ -254,9 +241,10 @@ do
   fi
   SP_LOWER=`echo $DB | awk -F'_core_' '{print $1}'`
   SP_UC_FIRST="$(tr '[:lower:]' '[:upper:]' <<< ${SP_LOWER:0:1})${SP_LOWER:1}"
-  echo "  \$SiteDefs::__species_aliases{ '$SP_UC_FIRST' } = [qw($SP_LOWER)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
+  #echo "  \$SiteDefs::__species_aliases{ '$SP_UC_FIRST' } = [qw($SP_LOWER)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 
-  # add to DEFAULT_FAVOURITES
+  # add to ALL_SPECIES and DEFAULT_FAVOURITES
+  ALL_SPECIES="$ALL_SPECIES\n${SP_LOWER%%_collection}"
   DEFAULT_FAVOURITES="$DEFAULT_FAVOURITES $SP_UC_FIRST"
 
   # add/copy species images and about pages
@@ -264,6 +252,9 @@ do
   do
     if [ -e "$PLUGIN_DIR/htdocs/i/species/16/$SP_UC_FIRST.png" ]; then
       cp $PLUGIN_DIR/htdocs/i/species/16/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png
+    fi
+    if [ -e "$PLUGIN_DIR/htdocs/i/species/32/$SP_UC_FIRST.png" ]; then
+      cp $PLUGIN_DIR/htdocs/i/species/32/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png
     fi
     if [ -e "$PLUGIN_DIR/htdocs/i/species/48/$SP_UC_FIRST.png" ]; then
       cp $PLUGIN_DIR/htdocs/i/species/48/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png
@@ -274,9 +265,15 @@ do
     fi
   done
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png ]; then
+    convert /ensembl/img/placeholder-64.png -resize 16x16 /ensembl/img/placeholder-16.png
     cp /ensembl/img/placeholder-16.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png
   fi
+  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png ]; then
+    convert /ensembl/img/placeholder-64.png -resize 32x32 /ensembl/img/placeholder-32.png
+    cp /ensembl/img/placeholder-32.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png
+  fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png ]; then
+    convert /ensembl/img/placeholder-64.png -resize 48x48 /ensembl/img/placeholder-48.png
     cp /ensembl/img/placeholder-48.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png
   fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png ]; then
@@ -287,10 +284,10 @@ do
   fi
 
   # create a Genus_species.ini file in mirror/conf/ini-files
-  printf "[general]\n\n[ENSEMBL_STYLE]\n\n[ENSEMBL_COLOURS]\n\n[SAMPLE_DATA]\n\n[databases]\n" > $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
-  printf "DATABASE_CORE = $DB\n#OTHER_DATABASES\n\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
+  printf "[general]\n\n[ENSEMBL_STYLE]\n\n[ENSEMBL_COLOURS]\n\n[SAMPLE_DATA]\n\n[databases]\n" > $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_LOWER.ini
+  printf "DATABASE_CORE = $DB\n#OTHER_DATABASES\n\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_LOWER.ini
   # !add database connection parameters to Genus_species.ini
-  printf "\n[DATABASE_CORE]\nHOST = $TEST_HOST\nPORT = $TEST_PORT\nUSER = $TEST_USER\nPASS = $TEST_PASS\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
+  printf "\n[DATABASE_CORE]\nHOST = $TEST_HOST\nPORT = $TEST_PORT\nUSER = $TEST_USER\nPASS = $TEST_PASS\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_LOWER.ini
 
   # attempt to add additional database types
   for DB_TYPE in $SPECIES_DB_AUTO_EXPAND
@@ -303,14 +300,14 @@ do
       echo "Connection to $NEW_DB on $TEST_HOST successful"
       UC_TYPE=${DB_TYPE^^}
       # add database connection parameters to Genus_species.ini
-      printf "\n[DATABASE_$UC_TYPE]\nHOST = $TEST_HOST\nPORT = $TEST_PORT\nUSER = $TEST_USER\nPASS = $TEST_PASS\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
-      perl -p -i -e "s/(.OTHER_DATABASES)/DATABASE_$UC_TYPE = $NEW_DB\n\$1/" $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_UC_FIRST.ini
+      printf "\n[DATABASE_$UC_TYPE]\nHOST = $TEST_HOST\nPORT = $TEST_PORT\nUSER = $TEST_USER\nPASS = $TEST_PASS\n" >> $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_LOWER.ini
+      perl -p -i -e "s/(.OTHER_DATABASES)/DATABASE_$UC_TYPE = $NEW_DB\n\$1/" $SERVER_ROOT/public-plugins/mirror/conf/ini-files/$SP_LOWER.ini
     fi
   done
 
 done
-echo "  \$SiteDefs::ENSEMBL_DATASETS = [qw($DEFAULT_FAVOURITES)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
-echo "  \$SiteDefs::PRODUCTION_NAMES = [qw($DEFAULT_FAVOURITES)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
+#echo "  \$SiteDefs::ENSEMBL_DATASETS = [qw($DEFAULT_FAVOURITES)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
+printf "  \$SiteDefs::PRODUCTION_NAMES = [qw($ALL_SPECIES)];" >> $SERVER_ROOT/public-plugins/mirror/conf/SiteDefs.pm
 DEFAULT_FAVOURITES="DEFAULT_FAVOURITES = [$DEFAULT_FAVOURITES ]"
 
 # finish writing SiteDefs.pm
@@ -409,3 +406,4 @@ do
   ((INDEX++))
 done
 
+cp $SERVER_ROOT/scripts/httpd.conf $SERVER_ROOT/ensembl-webcode/conf/httpd.conf

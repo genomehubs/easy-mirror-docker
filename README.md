@@ -1,8 +1,8 @@
 # EasyMirror Docker container
 
 Set up a mirror of any [Ensembl](http://www.ensembl.org)/[EnsemblGenomes](http://ensemblgenomes.org) species 
-or use with the [EasyImport](https://hub.docker.com/u/lepbase/easy-import) to import your own data into an Ensembl.
+or use with the [EasyImport](https://hub.docker.com/u/genomehubs/easy-import) to import your own data into an Ensembl.
 
-Version 17.02 is used in [Lepbase](http://ensembl.lepbase.org) release v4. Currently tested with Ensembl release 85.
+Version 19.05 is is compatible with Ensembl release 93.
 
-The latest documentation is available at [readme.io](http://easy-import.readme.io/docs/dockerised-setup).
+This code is part of the [GenomeHubs](http://genomehubs.org) project and the latest documentation is available at [gitbook.io](https://genomehubs.gitbook.io/genomehubs).
