@@ -51,6 +51,10 @@ RUN { echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula sel
 
 RUN export PERL5LIB=.:$PERL5LIB && \
     cpanm \
+    --notest --force XML::DOM::XPath
+
+RUN export PERL5LIB=.:$PERL5LIB && \
+    cpanm \
     Archive::Zip \
     BSD::Resource \
     Bio::Root::IO \
