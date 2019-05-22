@@ -129,7 +129,7 @@ function load_db(){
       FROM=${BASH_REMATCH[2]}
       TYPE=${BASH_REMATCH[1]}
     fi
-    CMD="/ensembl/ensembl/misc-scripts/schema_patcher.pl \
+    CMD="echo y | /ensembl/ensembl/misc-scripts/schema_patcher.pl \
          --host $DB_HOST \
          --port $DB_PORT \
          --user $DB_ROOT_USER \
