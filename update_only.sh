@@ -250,37 +250,34 @@ do
   # add/copy species images and about pages
   for PLUGIN_DIR in ${PLUGIN_DIRS[@]}
   do
-    if [ -e "$PLUGIN_DIR/htdocs/i/species/16/$SP_UC_FIRST.png" ]; then
-      cp $PLUGIN_DIR/htdocs/i/species/16/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png
-    fi
-    if [ -e "$PLUGIN_DIR/htdocs/i/species/32/$SP_UC_FIRST.png" ]; then
-      cp $PLUGIN_DIR/htdocs/i/species/32/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png
-    fi
-    if [ -e "$PLUGIN_DIR/htdocs/i/species/48/$SP_UC_FIRST.png" ]; then
-      cp $PLUGIN_DIR/htdocs/i/species/48/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png
-    fi
-    if [ -e "$PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png" ]; then
+    if [ -e "$PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png" ]; then
+      cp $PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png
+      cp $PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
+      break
+    elif [ -e "$PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png" ]; then
       cp $PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
+      cp $PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png
       break
     fi
   done
-  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png ]; then
-    convert /ensembl/img/placeholder-64.png -resize 16x16 /ensembl/img/placeholder-16.png
-    cp /ensembl/img/placeholder-16.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png
-  fi
-  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png ]; then
-    convert /ensembl/img/placeholder-64.png -resize 32x32 /ensembl/img/placeholder-32.png
-    cp /ensembl/img/placeholder-32.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png
-  fi
-  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png ]; then
-    convert /ensembl/img/placeholder-64.png -resize 48x48 /ensembl/img/placeholder-48.png
-    cp /ensembl/img/placeholder-48.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png
-  fi
+#  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png ]; then
+#    convert /ensembl/img/placeholder-64.png -resize 16x16 /ensembl/img/placeholder-16.png
+#    cp /ensembl/img/placeholder-16.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/16/$SP_UC_FIRST.png
+#  fi
+#  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png ]; then
+#    convert /ensembl/img/placeholder-64.png -resize 32x32 /ensembl/img/placeholder-32.png
+#    cp /ensembl/img/placeholder-32.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/32/$SP_UC_FIRST.png
+#  fi
+#  if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png ]; then
+#    convert /ensembl/img/placeholder-64.png -resize 48x48 /ensembl/img/placeholder-48.png
+#    cp /ensembl/img/placeholder-48.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/48/$SP_UC_FIRST.png
+#  fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png ]; then
     cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
+    cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png
   fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png ]; then
-    cp $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
+    cp $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
   fi
 
   # create a Genus_species.ini file in mirror/conf/ini-files

@@ -55,6 +55,12 @@ RUN export PERL5LIB=.:$PERL5LIB && \
 
 RUN export PERL5LIB=.:$PERL5LIB && \
     cpanm \
+    DateTime::Format::Oracle \
+    DateTime::Format::MySQL \
+    DateTime::Format::Pg
+
+RUN export PERL5LIB=.:$PERL5LIB && \
+    cpanm \
     Archive::Zip \
     BSD::Resource \
     Bio::Root::IO \
@@ -134,6 +140,7 @@ RUN git clone https://github.com/samtools/htslib && \
     make install
 
 RUN cpanm \
+    --notest --force \
     Bio::DB::HTS \
     Bio::DB::HTS::Tabix
 
