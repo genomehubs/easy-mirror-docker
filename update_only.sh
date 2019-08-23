@@ -253,10 +253,12 @@ do
     if [ -e "$PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png" ]; then
       cp $PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png
       cp $PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
+      cp $PLUGIN_DIR/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
       break
     elif [ -e "$PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png" ]; then
       cp $PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
       cp $PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png
+      cp $PLUGIN_DIR/htdocs/i/species/64/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
       break
     fi
   done
@@ -275,6 +277,7 @@ do
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png ]; then
     cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/64/$SP_UC_FIRST.png
     cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png
+    cp /ensembl/img/placeholder-64.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
   fi
   if ! [ -e $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png ]; then
     cp $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/96/$SP_UC_FIRST.png $SERVER_ROOT/public-plugins/mirror/htdocs/i/species/$SP_UC_FIRST.png
