@@ -77,7 +77,9 @@ ENSEMBL_BRANCH=$(awk -F "=" '/ENSEMBL_BRANCH/ {print $2}' $INI | tr -d ' ')
 git_update $SERVER_ROOT/ensembl $ENSEMBL_URL/ensembl.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-compara $ENSEMBL_URL/ensembl-compara.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-funcgen $ENSEMBL_URL/ensembl-funcgen.git $ENSEMBL_BRANCH
+git_update $SERVER_ROOT/ensembl-metadata $ENSEMBL_URL/ensembl-metadata.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-orm $ENSEMBL_URL/ensembl-orm.git $ENSEMBL_BRANCH
+git_update $SERVER_ROOT/ensembl-taxonomy $ENSEMBL_URL/ensembl-taxonomy.git main
 git_update $SERVER_ROOT/ensembl-variation $ENSEMBL_URL/ensembl-variation.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-webcode $ENSEMBL_URL/ensembl-webcode.git $ENSEMBL_BRANCH
 git_update $SERVER_ROOT/ensembl-io $ENSEMBL_URL/ensembl-io.git $ENSEMBL_BRANCH

@@ -1,9 +1,16 @@
-FROM ubuntu:bionic
+FROM ubuntu:20.04
 
-MAINTAINER  Richard Challis/Lepbase contact@lepbase.org
+LABEL maintainer="contact@genomehubs.org"
+LABEL license="MIT"
+ARG VERSION=22.03
+LABEL version=$VERSION
 
 ENV TERM xterm
-ENV DEBIAN_FRONTEND noninteractive
+
+RUN { echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true; } | debconf-set-selections
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
 
 RUN apt-get update && apt-get install -y \
     acedb-other-dotter \
@@ -22,7 +29,6 @@ RUN apt-get update && apt-get install -y \
     libgd-dev \
     libgdbm-dev \
     libhts-dev \
-    libhts2 \
     libio-socket-ssl-perl \
     libmemcached-dev \
     libmysqlclient*-dev \
@@ -31,23 +37,19 @@ RUN apt-get update && apt-get install -y \
     libwww-curl-perl \
     libssl-dev \
     libxml2-dev \
-    memcachedb \
+    memcached \
     mysql-client \
     mysql-common \
     openjdk-8-jre-headless \
     openssl \
     php-gd \
     tabix \
+    ttf-mscorefonts-installer \
     vcftools \
     unzip \
     uuid-dev \
     wget && \
     rm -rf /var/lib/apt/lists/*
-
-# accepts Microsoft EULA agreement without prompting
-# view EULA at http://wwww.microsoft.com/typography/fontpack/eula.htm
-RUN { echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true; } | debconf-set-selections \
-    && apt-get update && apt-get install -y ttf-mscorefonts-installer
 
 RUN export PERL5LIB=.:$PERL5LIB && \
     cpanm \
@@ -67,7 +69,6 @@ RUN export PERL5LIB=.:$PERL5LIB && \
     Cache::Memcached::GetParser \
     CGI::Session \
     Class::Accessor \
-    Class::DBI::Sweet \
     Clone \
     Compress::Bzip2 \
     CSS::Minifier \
@@ -109,6 +110,10 @@ RUN export PERL5LIB=.:$PERL5LIB && \
     XML::Atom \
     YAML
 
+RUN export PERL5LIB=.:$PERL5LIB && \
+    cpanm \
+    --notest --force Class::DBI::Sweet
+
 WORKDIR /tmp
 
 RUN export APACHEVERSION=2.2.34 \
@@ -136,6 +141,7 @@ RUN git clone https://github.com/samtools/tabix && \
 
 RUN git clone https://github.com/samtools/htslib && \
     cd htslib && \
+    git submodule update --init --recursive && \
     make && \
     make install
 
@@ -166,18 +172,33 @@ RUN wget http://hgdownload.cse.ucsc.edu/admin/jksrc.zip && \
     sed -i "s/-DUCSC_CRAM/-DUCSC_CRAM -fPIC/" Makefile && \
     make
 
-WORKDIR /tmp
+RUN cpanm Alien::LibBigWig
 
-RUN wget http://cpan.metacpan.org/authors/id/L/LD/LDS/Bio-BigFile-1.07.tar.gz && \
-    tar xzf Bio-BigFile-1.07.tar.gz && \
-    cd Bio-BigFile-1.07 && \
-    sed -i "s/\$ENV{KENT_SRC}/\'\/usr\/local\/kent\/src\'/" Build.PL && \
-    sed -i "s/\$ENV{MACHTYPE}/x86_64/" Build.PL && \
-    sed -i 's:extra_linker_flags => \["\$jk_lib/\$LibFile":extra_linker_flags => \["-pthread","\$jk_lib/\$LibFile","\$jk_include/../htslib/libhts.a":' Build.PL && \
-    perl Build.PL && \
-    ./Build && \
-    ./Build test && \
-    ./Build install
+# WORKDIR /tmp
+
+# RUN wget http://cpan.metacpan.org/authors/id/L/LD/LDS/Bio-BigFile-1.07.tar.gz && \
+#     tar xzf Bio-BigFile-1.07.tar.gz && \
+#     cd Bio-BigFile-1.07 && \
+#     cat Build.PL && \
+#     sed -i "s/\$ENV{KENT_SRC}/\'\/usr\/local\/kent\/src\'/" Build.PL && \
+#     sed -i 's/\$ENV{MACHTYPE}"/x86_64", "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"/' Build.PL && \
+#     sed -i 's:extra_linker_flags => \["\$jk_lib/\$LibFile":extra_linker_flags => \["-pthread","\$jk_lib/\$LibFile","\$jk_include/../htslib/libhts.a":' Build.PL && \
+#     perl Build.PL && \
+#     ./Build && \
+#     ./Build test && \
+#     ./Build install
+
+# RUN apt-get update && apt-get -y install dh-autoreconf
+
+# RUN git clone https://github.com/vcftools/vcftools && \
+#     cd vcftools && \
+#     ./autogen.sh && \
+#     ./configure && \
+#     make && \
+#     ls && \
+#     make install 
+
+RUN cpanm Text::MultiMarkdown
 
 RUN adduser --disabled-password --gecos '' eguser
 
@@ -198,11 +219,11 @@ COPY default.setup.ini /conf/setup.ini
 COPY default.database.ini /conf/database.ini
 RUN /ensembl/scripts/update.sh /conf/setup.ini
 ENV PERL5LIB $PERL5LIB:/ensembl/bioperl-live\
-:/ensembl/ensembl/modules\
-:/ensembl/ensembl-compara/modules\
-:/ensembl/ensembl-funcgen/modules\
-:/ensembl/ensembl-io/modules\
-:/ensembl/ensembl-variation/modules
+    :/ensembl/ensembl/modules\
+    :/ensembl/ensembl-compara/modules\
+    :/ensembl/ensembl-funcgen/modules\
+    :/ensembl/ensembl-io/modules\
+    :/ensembl/ensembl-variation/modules
 
 COPY httpd.conf /ensembl/scripts/
 COPY *.sh /ensembl/scripts/
