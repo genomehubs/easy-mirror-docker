@@ -16,11 +16,14 @@ docker run -d \
     -p 8080:8080 \
     genomehubs/easy-mirror-docker:latest
 
+docker rm -f genomehubs-search && docker run -d              --name genomehubs-search -e SEARCH_DB_NAME='genomehubs_search_52_105'              --network genomehubs-network              -p 8884:8080              -v /home/ubuntu/search-docker/lbsearch:/var/www/search.genomehubs.org/cgi-bin/lbsearch genomehubs/search:latest
+
 docker run --rm \
     -u $UID:$GROUPS \
     --name easy-import-melitaea_cinxia_core_52_105_1 \
     --network genomehubs-network \
     -v ~/easy-mirror-docker/conf:/import/conf \
+    -v ~/easy-import:/ensembl/easy-import \
     -e DATABASE=melitaea_cinxia_core_52_105_1 \
     -e FLAGS="-i" \
-    genomehubs/easy-import:19.05
+    genomehubs/easy-import:latest
